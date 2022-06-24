@@ -28,13 +28,14 @@ import cunumeric as np
 
 def initialize(N):
     print("Initializing stencil grid...")
-    grid = np.zeros((N + 2, N + 2, N + 2))
-    grid[:, :, 0] = -273.15
+    grid = np.zeros((N + 2, N + 2, N+2))
+    grid[:,:, 0] = -273.15
     grid[:, 0, :] = -273.15
-    grid[0, :, :] = -273.15
-    grid[:, :, -1] = 273.15
+    grid[0,:, :] = -273.15
+    grid[:,:, -1] = 273.15
     grid[:, -1, :] = 273.15
-    grid[-1, :, :] = 273.15
+    grid[-1,:, :] = 273.15
+ 
 
     return grid
 
@@ -42,61 +43,56 @@ def initialize(N):
 def run(grid, I, N):  # noqa: E741
     print("Running Jacobi 27 stencil...")
 
-    # one
+    #one
     g000 = grid[0:-2, 0:-2, 0:-2]
     g001 = grid[0:-2, 0:-2, 1:-1]
-    g002 = grid[0:-2, 0:-2, 2:]
+    g002 = grid[0:-2, 0:-2, 2:  ]
 
     g010 = grid[0:-2, 1:-1, 0:-2]
     g011 = grid[0:-2, 1:-1, 1:-1]
-    g012 = grid[0:-2, 1:-1, 2:]
+    g012 = grid[0:-2, 1:-1, 2:  ]
 
-    g020 = grid[0:-2, 2:, 0:-2]
-    g021 = grid[0:-2, 2:, 1:-1]
-    g022 = grid[0:-2, 2:, 2:]
+    g020 = grid[0:-2, 2:  , 0:-2]
+    g021 = grid[0:-2, 2:  , 1:-1]
+    g022 = grid[0:-2, 2:  , 2:  ]
 
-    # two
+    #two
     g100 = grid[1:-1, 0:-2, 0:-2]
     g101 = grid[1:-1, 0:-2, 1:-1]
-    g102 = grid[1:-1, 0:-2, 2:]
+    g102 = grid[1:-1, 0:-2, 2:  ]
 
     g110 = grid[1:-1, 1:-1, 0:-2]
     g111 = grid[1:-1, 1:-1, 1:-1]
-    g112 = grid[1:-1, 1:-1, 2:]
+    g112 = grid[1:-1, 1:-1, 2:  ]
 
-    g120 = grid[1:-1, 2:, 0:-2]
-    g121 = grid[1:-1, 2:, 1:-1]
-    g122 = grid[1:-1, 2:, 2:]
+    g120 = grid[1:-1, 2:  , 0:-2]
+    g121 = grid[1:-1, 2:  , 1:-1]
+    g122 = grid[1:-1, 2:  , 2:  ]
 
-    # three
-    g200 = grid[2:, 0:-2, 0:-2]
-    g201 = grid[2:, 0:-2, 1:-1]
-    g202 = grid[2:, 0:-2, 2:]
+    #three
+    g200 = grid[2:  , 0:-2, 0:-2]
+    g201 = grid[2:  , 0:-2, 1:-1]
+    g202 = grid[2:  , 0:-2, 2:  ]
 
-    g210 = grid[2:, 1:-1, 0:-2]
-    g211 = grid[2:, 1:-1, 1:-1]
-    g212 = grid[2:, 1:-1, 2:]
+    g210 = grid[2:  , 1:-1, 0:-2]
+    g211 = grid[2:  , 1:-1, 1:-1]
+    g212 = grid[2:  , 1:-1, 2:  ]
 
-    g220 = grid[2:, 2:, 0:-2]
-    g221 = grid[2:, 2:, 1:-1]
-    g222 = grid[2:, 2:, 2:]
+    g220 = grid[2:  , 2:  , 0:-2]
+    g221 = grid[2:  , 2:  , 1:-1]
+    g222 = grid[2:  , 2:  , 2:  ]
 
     for i in range(I):
-        g00 = g000 + g001 + g002
-        g01 = g010 + g011 + g012
-        g02 = g020 + g021 + g022
-        g10 = g100 + g101 + g102
-        g11 = g110 + g111 + g112
-        g12 = g120 + g121 + g122
-        g20 = g200 + g201 + g202
-        g21 = g210 + g211 + g212
-        g22 = g220 + g221 + g222
+        res =  g000 + g001 + g002 \
+             + g010 + g011 + g012 \
+             + g020 + g021 + g022 \
+             + g100 + g101 + g102 \
+             + g110 + g111 + g112 \
+             + g120 + g121 + g122 \
+             + g200 + g201 + g202 \
+             + g210 + g211 + g212 \
+             + g220 + g221 + g222 
 
-        g0 = g00 + g01 + g02
-        g1 = g10 + g11 + g12
-        g2 = g20 + g21 + g22
-
-        res = g0 + g1 + g2
         work = 0.037 * res
         g111[:] = work
     total = np.sum(g111)
@@ -153,7 +149,6 @@ if __name__ == "__main__":
         "- normal execution)",
     )
     args = parser.parse_args()
-    total=run_benchmark(
+    run_benchmark(
         run_stencil, args.benchmark, "Stencil", (args.N, args.I, args.timing)
     )
-    print("parsetotal", total)

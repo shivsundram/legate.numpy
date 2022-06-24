@@ -47,6 +47,7 @@ def run_benchmark(f, samples, name, args):
             + reduce(lambda x, y: x + y, map(lambda x: str(x) + ", ", results))
         )
         print("-----------------------------------------------")
+        return mean
     else:
         # Just run the application like normal
-        f(*args)
+        return f(*args)
