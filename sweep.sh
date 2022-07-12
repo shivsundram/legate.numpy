@@ -1,5 +1,3 @@
-
-
 CGPUSPERNODE=4
 RUNNER="srun"
 hostName=$(hostname)
@@ -21,6 +19,7 @@ echo "Using Runner" $RUNNER
 
 for i in "1 188" "2 238" "4 300 8 378 16 400" 
 do
+    break
     set -- $i # convert the "tuple" into the param args $1 $2...
     ZNODES=$(($1 / $CGPUSPERNODE))
     NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
@@ -38,20 +37,71 @@ do
 done
 
 
-echo "do mandelbrot"
-for i in "1 1000" "4 2000" "8 2828"
+for i in "1 188" "2 238" "4 300" "8 378" "16 400" 
+#for i in  "8 378" "16 400" 
 do
+    break;
     set -- $i # convert the "tuple" into the param args $1 $2...
     ZNODES=$(($1 / $CGPUSPERNODE))
     NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
-    GPUSPERNODE=$(( $ZNODES > 1 ? $ZNODES : $1 ))
+    GPUSPERNODE=$(( $ZNODES > 1 ? $CGPUSPERNODE : $1 ))
 
     WSIZE=50
     if [[ "$SLURM_JOB_NUM_NODES" -lt "$NODES" ]]; then
         break
     fi
+    cp cOn.py cunumeric/array.py
+    echo running stencil C with ngpus $1, $NODES nodes, size $2 , window size $WSIZE, gpuspernode $GPUSPERNODE
+    LEGATE_WINDOW_SIZE=$WSIZE ../legate.core/install/bin/legate examples/stencil_27C.py -n $2 -i 500 -t -b 3 --gpus $GPUSPERNODE -ll:fsize 12000 --launcher $RUNNER --nodes $NODES | grep "parsetotal"
+    cp cOff.py cunumeric/array.py
+    echo running stencil C  with ngpus $1, $NODES nodes, size $2 , window size 1
+    LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/stencil_27C.py -n $2 -i 500 -t -b 3 --gpus $GPUSPERNODE -ll:fsize 12000 --launcher $RUNNER --nodes $NODES | grep "parsetotal"
+    cp cOn.py cunumeric/array.py
+done
+
+
+
+echo "do logreg"
+for i in "1 1600" "4 6400" "8 12800"
+do
+    set -- $i # convert the "tuple" into the param args $1 $2...
+    ZNODES=$(($1 / $CGPUSPERNODE))
+    NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
+    GPUSPERNODE=$(( $ZNODES > 1 ? $CGPUSPERNODE : $1 ))
+
+
+    WSIZE=50
+    if [[ "$SLURM_JOB_NUM_NODES" -lt "$NODES" ]]; then
+        break
+    fi
+    cp cOn.py cunumeric/array.py
+    echo running logreg with ngpus $1, $NODES nodes, size $2 , window size $WSIZE
+    LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/logreg.py -i 1000 --gpus $GPUSPERNODE -n $2 -s 500  -ll:fsize 12000 --benchmark 3 --launcher mpirun --nodes $NODES 2>&1 | grep "parsetotal"
+    cp cOff.py cunumeric/array.py
+    echo running logreg with ngpus $1, $NODES nodes, size $2 , window size 1
+    LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/logreg.py -i 1000 --gpus $GPUSPERNODE -n $2 -s 500  -ll:fsize 12000 --benchmark 3 --launcher mpirun --nodes $NODES 2>&1 | grep "parsetotal"
+    cp cOn.py cunumeric/array.py
+done
+
+
+echo "do mandelbrot"
+for i in "1 1000" "4 2000" "8 2828"
+do
+    break
+    set -- $i # convert the "tuple" into the param args $1 $2...
+    ZNODES=$(($1 / $CGPUSPERNODE))
+    NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
+    GPUSPERNODE=$(( $ZNODES > 1 ? $CGPUSPERNODE : $1 ))
+
+
+    WSIZE=50
+    if [[ "$SLURM_JOB_NUM_NODES" -lt "$NODES" ]]; then
+        break
+    fi
+    cp cOn.py cunumeric/array.py
     echo running mandel with ngpus $1, $NODES nodes, size $2 , window size $WSIZE
     LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/mandelbrot.py --gpus $GPUSPERNODE --nodes $NODES --launcher mpirun -n $2 2>&1 | grep "parsetotal"
+    cp cOff.py cunumeric/array.py
     echo running mandel with ngpus $1, $NODES nodes, size $2 , window size 1
     LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/mandelbrot.py --gpus $GPUSPERNODE --nodes $NODES --launcher mpirun -n $2 2>&1 | grep "parsetotal"
 done

@@ -18,19 +18,17 @@ def linspace(start, stop, num, dtype):
     return X
 
 
-def mandelbrot(xmin, xmax, ymin, ymax, xn, yn, maxiter, horizon=4.0, timing=True):
+def mandelbrot(xmin, xmax, ymin, ymax, xn, yn, maxiter, horizon=4.0, D=np.float32, timing=True):
     # Adapted from https://www.ibm.com/developerworks/community/blogs/jfp/...
     #              .../entry/How_To_Compute_Mandelbrodt_Set_Quickly?lang=en
 
-    X = linspace(xmin, xmax, xn, dtype=np.float64)
-    Y = linspace(ymin, ymax, yn, dtype=np.float64)
+    X = linspace(xmin, xmax, xn, dtype=D)
+    Y = linspace(ymin, ymax, yn, dtype=D)
     Y1 = Y[:, None]
-    N = np.zeros((xn, yn), dtype=np.int64)
-    Zre = np.zeros((xn, xn), dtype=np.float64)
-    Zim = np.zeros((yn, yn), dtype=np.float64)
-    tmp = np.zeros((yn, yn), dtype=np.float64)
-    #ZimTemp = np.zeros((yn, yn), dtype=np.float64)
-    #I=np.zeros(N.shape, dtype=np.int64)
+    N = np.zeros((xn, yn), dtype=np.int32)
+    Zre = np.zeros((xn, xn), dtype=D)
+    Zim = np.zeros((yn, yn), dtype=D)
+    #tmp = np.zeros((yn, yn), dtype=D)
     start = datetime.datetime.now()
     for n in range(maxiter):
         I = np.less(Zre*Zre + Zim*Zim, horizon)
@@ -49,7 +47,7 @@ def mandelbrot(xmin, xmax, ymin, ymax, xn, yn, maxiter, horizon=4.0, timing=True
     if timing:
         print("Elapsed Time: " + str(total) + " ms")
     NmaxIter = (N==maxiter -1)
-    N = np.int64(~NmaxIter)*N
+    N = np.int32(~NmaxIter)*N
     return Zre, Zim, N, total
 
 g=2000
@@ -105,13 +103,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
     totals = []
     for i in range(args.nbenchmark):
-        Zre, Zim, N, total = mandelbrot(xmin, xmax, ymin, ymax, args.ndim, args.ndim, maxiter, 4.0, True)
+        Zre, Zim, N, total = mandelbrot(xmin, xmax, ymin, ymax, args.ndim, args.ndim, maxiter, 4.0,np.float32, True)
         totals.append(total)
     print("parsetotal", float(sum(totals))/len(totals)) 
 
     if args.save_data:
        with open("data.npy", 'wb') as f:
-           N=npy.array(N, dtype=np.int64)
+           N=npy.array(N, dtype=np.int32)
            np.save(f,N)
 
     if args.make_image:
