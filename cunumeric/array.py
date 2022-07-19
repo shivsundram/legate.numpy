@@ -2026,11 +2026,12 @@ class ndarray(object):
             isDeferred = isinstance(one._thunk, DeferredArray) or isinstance(
                 two._thunk, DeferredArray
             )
+            cOpt=True
             if one.dtype != two.dtype:
                 common_type = cls.find_common_type(one, two)
                 if one.dtype != common_type:
                     # remove convert ops
-                    if isDeferred and one.shape == ():
+                    if cOpt and isDeferred and one.shape == ():
                         temp = ndarray(
                             shape=one.shape,
                             dtype=common_type,
@@ -2057,7 +2058,7 @@ class ndarray(object):
                     one = temp
                 if two.dtype != common_type:
                     # remove convert ops
-                    if isDeferred and two.shape == ():
+                    if cOpt and isDeferred and two.shape == ():
                         temp = ndarray(
                             shape=two.shape,
                             dtype=common_type,

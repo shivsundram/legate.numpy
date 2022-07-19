@@ -153,6 +153,7 @@ if __name__ == "__main__":
         "- normal execution)",
     )
     args = parser.parse_args()
-    run_benchmark(
+    total=run_benchmark(
         run_stencil, args.benchmark, "Stencil", (args.N, args.I, args.timing)
     )
+    print("parsetotal", total)

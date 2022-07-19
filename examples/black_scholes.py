@@ -133,12 +133,13 @@ if __name__ == "__main__":
             (args.N, np.float16),
         )
     elif args.P == 32:
-        run_benchmark(
+        total=run_benchmark(
             run_black_scholes,
             args.benchmark,
             "Black Scholes",
             (args.N, np.float32),
         )
+        print("parsetotal", total)
     elif args.P == 64:
         run_benchmark(
             run_black_scholes,

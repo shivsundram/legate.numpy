@@ -28,7 +28,8 @@ import cunumeric as np
 
 def initialize(N):
     print("Initializing stencil grid...")
-    grid = np.zeros((N + 2, N + 2, N + 2))
+    grid = np.zeros((N + 2, N + 2, N + 2), dtype=np.float32)
+    #grid = np.zeros((N + 2, N + 2, N + 2), dtype=np.float64)
     grid[:, :, 0] = -273.15
     grid[:, 0, :] = -273.15
     grid[0, :, :] = -273.15
