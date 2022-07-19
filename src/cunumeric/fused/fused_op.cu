@@ -90,7 +90,7 @@ using namespace legate;
           scalars.push_back(std::move(context.scalars()[scalarStarts[i]+j]));
       }
 
-
+      //TaskContext  context4( task,(const std::vector<Legion::PhysicalRegion>) regions, context.context_, context.runtime_);
       TaskContext context3(task, (const std::vector<Legion::PhysicalRegion>) regions);// inputs, outputs, scalars);
       context3.inputs_ = std::move(inputs);
       context3.outputs_ = std::move(outputs); 

@@ -2018,6 +2018,7 @@ class ndarray(object):
                     + str(out_shape)
                 )
         # Quick exit
+        cOpt = True
         if where is False:
             return out
         if out_dtype is None:

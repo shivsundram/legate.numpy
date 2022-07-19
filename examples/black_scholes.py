@@ -50,15 +50,12 @@ def cnd(d):
     A4 = -1.821255978
     A5 = 1.330274429
     RSQRT2PI = 0.39894228040143267793994605993438
-
     K = 1.0 / (1.0 + 0.2316419 * np.absolute(d))
-
     cnd = (
         RSQRT2PI
         * np.exp(-0.5 * d * d)
         * (K * (A1 + K * (A2 + K * (A3 + K * (A4 + K * A5)))))
     )
-
     return np.where(d > 0, 1.0 - cnd, cnd)
 
 
@@ -79,7 +76,7 @@ def run_black_scholes(N, D):
     N *= 1000
     start = datetime.datetime.now()
     S, X, T, R, V = initialize(N, D)
-    trials = 300
+    trials = 100
     ends = [None for i in range(trials)]
     for i in range(trials):
         call, put = black_scholes(S, X, T, R, V)
