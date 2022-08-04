@@ -15,7 +15,7 @@ if [[ $hostName == *"daint"* ]]; then
 fi
 
 
-while getopts ":wmbsuljt" option; do
+while getopts ":wmbsuljtv" option; do
    case $option in
       w) # Enter a name
          echo "requesting weighted stencil"
@@ -39,6 +39,9 @@ while getopts ":wmbsuljt" option; do
       t) # Enter a name
          echo "requesting 2d weighted stencil"
          T=1;;
+      v) # Enter a name
+         echo "requesting black scholes with various workloads on 4 nodes"
+         V=1;;
      \?) echo "invalid option";;
    esac
 done
@@ -95,9 +98,9 @@ do
     LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/stencil_27.py -n $2 -i 500 -t -b 3 --gpus $GPUSPERNODE -ll:fsize 12000 --launcher $RUNNER --nodes $NODES | grep "parsetotal"
 done
 
-#constant 3d stencil
-for i in "1 188" "2 238" "4 300" "8 378" "16 476" 
+#weighted 3d stencil
 #for i in  "32 600"
+for i in "1 188" "2 238" "4 300" "8 378" "16 476" 
 do
     if [ -z "${WS}" ]; then
        break;
@@ -150,8 +153,8 @@ done
 
 #jacobi
 echo "do jacobi"
-for i in "1 6400" "4 12800" "8 18101" "16 25600" "32 36202"
 #for i in  "8 18101"
+for i in "1 6400" "4 12800" "8 18101" "16 25600" "32 36202"
 do
     if [ -z "$J" ]; then
        break;
@@ -214,8 +217,8 @@ done
 
 #black scholes
 echo "do black scholes"
-#for i in "1 3200" "4 12800" "8 25600" "16 51200" "32 102400"
-for i  in "4 51200" "4 25600" "4 6400" "4 3200" "4 1600"
+#for i  in "4 51200" "4 25600" "4 6400" "4 3200" "4 1600"
+for i in "1 3200" "4 12800" "8 25600" "16 51200" "32 102400"
 do
     if [ -z "$B" ]; then
        break;
@@ -243,4 +246,36 @@ do
     #cp cOn.py cunumeric/array.py
     #LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/black_scholes.py -ll:fsize 12000 --gpus $GPUSPERNODE -b 3 --nodes $NODES --launcher $RUNNER -n $2 2>&1 | grep "parsetotal"
 done
+
+#black scholes with var workloads
+echo "do black scholes with various workloads"
+for i  in "4 51200" "4 25600" "4 6400" "4 3200" "4 1600"
+do
+    if [ -z "$V" ]; then
+       break;
+    fi
+    set -- $i # convert the "tuple" into the param args $1 $2...
+    ZNODES=$(($1 / $CGPUSPERNODE))
+    NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
+    GPUSPERNODE=$(( $ZNODES > 1 ? $CGPUSPERNODE : $1 ))
+
+
+    WSIZE=50
+    if [[ "$SLURM_JOB_NUM_NODES" -lt "$NODES" ]]; then
+        break
+    fi
+    echo running BS with ngpus $1, $NODES nodes, size $2 , window size $WSIZE
+    cp cOn.py cunumeric/array.py
+    LEGATE_TEST=1 LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/black_scholes.py  -ll:fsize 12000 --gpus $GPUSPERNODE -b 3 --nodes $NODES --launcher $RUNNER -n $2 2>&1 | grep "parsetotal"  
+    #| grep "parsetotal"
+
+    echo running BS with ngpus $1, $NODES nodes, size $2 , window size 1
+    cp cOff.py cunumeric/array.py
+    LEGATE_TEST=1 LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/black_scholes.py -ll:fsize 12000 --gpus $GPUSPERNODE -b 3 --nodes $NODES --launcher $RUNNER -n $2 2>&1 | grep "parsetotal"
+
+    #echo running BS with ngpus $1, $NODES nodes, size $2 , window size 1, copt on
+    #cp cOn.py cunumeric/array.py
+    #LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/black_scholes.py -ll:fsize 12000 --gpus $GPUSPERNODE -b 3 --nodes $NODES --launcher $RUNNER -n $2 2>&1 | grep "parsetotal"
+done
+
 
