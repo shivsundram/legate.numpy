@@ -29,16 +29,20 @@ import cunumeric as np
 def generate_random(N):
     print("Generating %dx%d system..." % (N, N))
     # Generate a random matrix
+    #A = np.random.rand(N, N).astype('f')
     A = np.random.rand(N, N)
     # Make sure that it is diagonally dominate
+    #A = A + N * np.eye(N).astype('f') 
     A = A + N * np.eye(N)
     # Generate a random vector
+    #b = np.random.rand(N).astype('f')
     b = np.random.rand(N)
     return A, b
 
 
 def solve(A, b, iters, verbose):
     print("Solving system...")
+    #x = np.zeros(A.shape[1], dtype=np.float32)
     x = np.zeros(A.shape[1])
     d = np.diag(A)
     R = A - np.diag(d)
@@ -122,9 +126,10 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    run_benchmark(
+    total=run_benchmark(
         run_jacobi,
         args.benchmark,
         "Jacobi",
         (args.N, args.iters, args.check, args.timing, args.verbose),
     )
+    print("parsetotal", total)

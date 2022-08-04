@@ -14,13 +14,71 @@ if [[ $hostName == *"daint"* ]]; then
   CGPUSPERNODE=1
 fi
 
+
+while getopts ":wmbsuljt" option; do
+   case $option in
+      w) # Enter a name
+         echo "requesting weighted stencil"
+         WS=1
+         ;;
+      m) # Enter a name
+         echo "requesting mandelbrot"
+         M=1;;
+      b) # Enter a name
+         echo "requesting black scholes"
+         B=1;;
+      u) # Enter a name
+         echo "requesting unweighted 3d stencil"
+         S=1;;
+      l) # Enter a name
+         echo "requesting logreg"
+         L=1;;
+      j) # Enter a name
+         echo "requesting jacobi"
+         J=1;;
+      t) # Enter a name
+         echo "requesting 2d weighted stencil"
+         T=1;;
+     \?) echo "invalid option";;
+   esac
+done
+
+
 echo "Identified" $CGPUSPERNODE "gpus per node"
 echo "Current allocation:" $SLURM_JOB_NUM_NODES 
 echo "Using Runner" $RUNNER
 
+#weighted 2d stencil
+for i in "1 2577" "4 5154" "8 7288" "16 10308" "32 14577" 
+do
+    if [ -z "$T" ]; then
+       break;
+    fi
+    set -- $i # convert the "tuple" into the param args $1 $2...
+    ZNODES=$(($1 / $CGPUSPERNODE))
+    NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
+    GPUSPERNODE=$(( $ZNODES > 1 ? $CGPUSPERNODE : $1 ))
+
+    WSIZE=50
+    if [[ "$SLURM_JOB_NUM_NODES" -lt "$NODES" ]]; then
+        break
+    fi
+
+    echo running stencil with ngpus $1, $NODES nodes, size $2 , window size $WSIZE, gpuspernode $GPUSPERNODE
+    LEGATE_WINDOW_SIZE=$WSIZE ../legate.core/install/bin/legate examples/stencil.py -n $2 -i 2000 -t -b 3 --gpus $GPUSPERNODE -ll:fsize 12000 --launcher $RUNNER --nodes $NODES | grep "parsetotal"
+    echo running stencil with ngpus $1, $NODES nodes, size $2 , window size 1
+    LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/stencil.py -n $2 -i 2000 -t -b 3 --gpus $GPUSPERNODE -ll:fsize 12000 --launcher $RUNNER --nodes $NODES | grep "parsetotal"
+done
+
+
+
+
+#regular 3d stencil
 for i in "1 188" "2 238" "4 300 8 378 16 400" 
 do
-    break
+    if [ -z "$S" ]; then
+       break;
+    fi
     set -- $i # convert the "tuple" into the param args $1 $2...
     ZNODES=$(($1 / $CGPUSPERNODE))
     NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
@@ -37,11 +95,13 @@ do
     LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/stencil_27.py -n $2 -i 500 -t -b 3 --gpus $GPUSPERNODE -ll:fsize 12000 --launcher $RUNNER --nodes $NODES | grep "parsetotal"
 done
 
-
-for i in "1 188" "2 238" "4 300" "8 378" "16 400" 
-#for i in  "8 378" "16 400" 
+#constant 3d stencil
+for i in "1 188" "2 238" "4 300" "8 378" "16 476" 
+#for i in  "32 600"
 do
-    break;
+    if [ -z "${WS}" ]; then
+       break;
+    fi
     set -- $i # convert the "tuple" into the param args $1 $2...
     ZNODES=$(($1 / $CGPUSPERNODE))
     NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
@@ -61,11 +121,13 @@ do
 done
 
 
-
+#logreg
 echo "do logreg"
-for i in "1 1600" "4 6400" "8 12800"
+for i in "1 1600" "4 6400" "8 12800" "16 25600" "32 51200"
 do
-    break
+    if [ -z "$L" ]; then
+       break;
+    fi
     set -- $i # convert the "tuple" into the param args $1 $2...
     ZNODES=$(($1 / $CGPUSPERNODE))
     NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
@@ -78,7 +140,7 @@ do
     fi
     cp cOn.py cunumeric/array.py
     echo running logreg with ngpus $1, $NODES nodes, size $2 , window size $WSIZE
-    LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/logreg.py -i 1000 --gpus $GPUSPERNODE -n $2 -s 500  -ll:fsize 12000 --benchmark 3 --launcher $RUNNER --nodes $NODES 2>&1 | grep "parsetotal"
+    LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/logreg.py -i 1000 --gpus $GPUSPERNODE -n $2 -s 500  -ll:fsize 12000 --benchmark 3 --launcher $RUNNER --nodes $NODES 2>&1 | grep "parsetotal" 
     cp cOff.py cunumeric/array.py
     echo running logreg with ngpus $1, $NODES nodes, size $2 , window size 1
     LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/logreg.py -i 1000 --gpus $GPUSPERNODE -n $2 -s 500  -ll:fsize 12000 --benchmark 3 --launcher $RUNNER --nodes $NODES 2>&1 | grep "parsetotal"
@@ -86,9 +148,44 @@ do
 done
 
 
+#jacobi
+echo "do jacobi"
+for i in "1 6400" "4 12800" "8 18101" "16 25600" "32 36202"
+#for i in  "8 18101"
+do
+    if [ -z "$J" ]; then
+       break;
+    fi
+    set -- $i # convert the "tuple" into the param args $1 $2...
+    ZNODES=$(($1 / $CGPUSPERNODE))
+    NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
+    GPUSPERNODE=$(( $ZNODES > 1 ? $CGPUSPERNODE : $1 ))
+
+
+    WSIZE=50
+    if [[ "$SLURM_JOB_NUM_NODES" -lt "$NODES" ]]; then
+        break
+    fi
+    cp cOn.py cunumeric/array.py
+    echo running jacobi with ngpus $1, $NODES nodes, size $2 , $GPUSPERNODE gpu per node, window size $WSIZE
+    #LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/jacobi.py -i 5000 --gpus $GPUSPERNODE -n $2  -ll:fsize 12000 --benchmark 3 --launcher $RUNNER --nodes $NODES
+    LEGATE_TEST=1 LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/jacobi.py -i 5000 --gpus $GPUSPERNODE -n $2  -ll:fsize 12000 --benchmark 3 --launcher $RUNNER --nodes $NODES 2>&1 | grep "parsetotal"  
+    cp cOff.py cunumeric/array.py
+    echo running jacobi with ngpus $1, $NODES nodes, size $2 , window size 1
+    LEGATE_TEST=1 LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/jacobi.py -i 5000 --gpus $GPUSPERNODE -n $2  -ll:fsize 12000 --benchmark 3 --launcher $RUNNER --nodes $NODES 2>&1 | grep "parsetotal" 
+    cp cOn.py cunumeric/array.py
+done
+
+
+
+
+#mandelbrot
 echo "do mandelbrot"
 for i in "1 1000" "4 2000" "8 2828" "16 4000" "32 5656"
 do
+    if [ -z "$M" ]; then
+       break;
+    fi
     set -- $i # convert the "tuple" into the param args $1 $2...
     ZNODES=$(($1 / $CGPUSPERNODE))
     NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
@@ -115,10 +212,14 @@ do
     LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/mandelbrot.py --gpus $GPUSPERNODE --nodes $NODES --launcher $RUNNER -n $2  | grep "parsetotal"
 done
 
+#black scholes
 echo "do black scholes"
-for i in "1 3200" "4 12800" "8 25600" "16 51200" "32 102400"
+#for i in "1 3200" "4 12800" "8 25600" "16 51200" "32 102400"
+for i  in "4 51200" "4 25600" "4 6400" "4 3200" "4 1600"
 do
-    break
+    if [ -z "$B" ]; then
+       break;
+    fi
     set -- $i # convert the "tuple" into the param args $1 $2...
     ZNODES=$(($1 / $CGPUSPERNODE))
     NODES=$(( $ZNODES > 1 ? $ZNODES : 1 ))
@@ -131,15 +232,15 @@ do
     fi
     echo running BS with ngpus $1, $NODES nodes, size $2 , window size $WSIZE
     cp cOn.py cunumeric/array.py
-    LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/black_scholes.py --gpus $GPUSPERNODE -b 3 --nodes $NODES --launcher $RUNNER -n $2 2>&1 | grep "parsetotal"  
+    LEGATE_TEST=1 LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/black_scholes.py  -ll:fsize 12000 --gpus $GPUSPERNODE -b 3 --nodes $NODES --launcher $RUNNER -n $2 2>&1 | grep "parsetotal"  
     #| grep "parsetotal"
 
     echo running BS with ngpus $1, $NODES nodes, size $2 , window size 1
     cp cOff.py cunumeric/array.py
-    LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/black_scholes.py --gpus $GPUSPERNODE -b 3 --nodes $NODES --launcher $RUNNER -n $2 2>&1 | grep "parsetotal"
+    LEGATE_TEST=1 LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/black_scholes.py -ll:fsize 12000 --gpus $GPUSPERNODE -b 3 --nodes $NODES --launcher $RUNNER -n $2 2>&1 | grep "parsetotal"
 
-    echo running BS with ngpus $1, $NODES nodes, size $2 , window size 1, copt on
-    cp cOn.py cunumeric/array.py
-    LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/black_scholes.py --gpus $GPUSPERNODE -b 3 --nodes $NODES --launcher $RUNNER -n $2 2>&1 | grep "parsetotal"
+    #echo running BS with ngpus $1, $NODES nodes, size $2 , window size 1, copt on
+    #cp cOn.py cunumeric/array.py
+    #LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/black_scholes.py -ll:fsize 12000 --gpus $GPUSPERNODE -b 3 --nodes $NODES --launcher $RUNNER -n $2 2>&1 | grep "parsetotal"
 done
 
