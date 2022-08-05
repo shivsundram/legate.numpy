@@ -95,7 +95,7 @@ do
     fi
     cp cOn.py cunumeric/array.py
     echo running stencil C with ngpus $1, $NODES nodes, size $2 , window size $WSIZE, gpuspernode $GPUSPERNODE
-    LEGATE_WINDOW_SIZE=$WSIZE ../legate.core/install/bin/legate examples/stencil_27C.py -n $2 -i 10 -t -b 1 --gpus $GPUSPERNODE -ll:fsize 12000 --launcher $RUNNER --nodes $NODES 
+    LEGATE_WINDOW_SIZE=$WSIZE ../legate.core/install/bin/legate examples/stencil_27C.py -n $2 -i 500 -t -b 1 --gpus $GPUSPERNODE -ll:fsize 12000 --launcher $RUNNER --nodes $NODES 
     #cp cOff.py cunumeric/array.py
     #echo running stencil C  with ngpus $1, $NODES nodes, size $2 , window size 1
     #LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/stencil_27C.py -n $2 -i 2 -t -b 1 --gpus $GPUSPERNODE -ll:fsize 12000 --launcher $RUNNER --nodes $NODES 
@@ -122,7 +122,7 @@ do
     fi
     cp cOn.py cunumeric/array.py
     echo running logreg with ngpus $1, $NODES nodes, size $2 , window size $WSIZE
-    LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/logreg.py -i 5 --gpus $GPUSPERNODE -n $2 -s 500  -ll:fsize 12000 --benchmark 1 --launcher $RUNNER --nodes $NODES 2>&1  
+    LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/logreg.py -i 500 --gpus $GPUSPERNODE -n $2 -s 500  -ll:fsize 12000 --benchmark 1 --launcher $RUNNER --nodes $NODES 2>&1  
     #cp cOff.py cunumeric/array.py
     #echo running logreg with ngpus $1, $NODES nodes, size $2 , window size 1
     #LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/logreg.py -i 5 --gpus $GPUSPERNODE -n $2 -s 500  -ll:fsize 12000 --benchmark 1 --launcher $RUNNER --nodes $NODES 2>&1 
@@ -152,10 +152,10 @@ do
     echo running jacobi with ngpus $1, $NODES nodes, size $2 , $GPUSPERNODE gpu per node, window size $WSIZE
     #LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/jacobi.py -i 5000 --gpus $GPUSPERNODE -n $2  -ll:fsize 12000 --benchmark 3 --launcher $RUNNER --nodes $NODES
     LEGATE_TEST=1 LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/jacobi.py -i 10 --gpus $GPUSPERNODE -n $2  -ll:fsize 12000 --benchmark 1 --launcher $RUNNER --nodes $NODES 2>&1   
-    cp cOff.py cunumeric/array.py
+    #cp cOff.py cunumeric/array.py
     echo running jacobi with ngpus $1, $NODES nodes, size $2 , window size 1
-    LEGATE_TEST=1 LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/jacobi.py -i 10 --gpus $GPUSPERNODE -n $2  -ll:fsize 12000 --benchmark 1 --launcher $RUNNER --nodes $NODES 2>&1  
-    cp cOn.py cunumeric/array.py
+    #LEGATE_TEST=1 LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/jacobi.py -i 10 --gpus $GPUSPERNODE -n $2  -ll:fsize 12000 --benchmark 1 --launcher $RUNNER --nodes $NODES 2>&1  
+    #cp cOn.py cunumeric/array.py
 done
 
 
@@ -185,9 +185,9 @@ do
     echo LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/mandelbrot.py --gpus $GPUSPERNODE --nodes $NODES --launcher $RUNNER -n $2 
     LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/mandelbrot2.py --gpus $GPUSPERNODE --nodes $NODES --launcher $RUNNER -n $2 
 
-    #cp cOff.py cunumeric/array.py
-    #echo running mandel with ngpus $1, $NODES nodes, size $2 , window size 1, no copt
-    #LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/mandelbrot.py --gpus $GPUSPERNODE --nodes $NODES --launcher $RUNNER -n $2  
+    cp cOff.py cunumeric/array.py
+    echo running mandel with ngpus $1, $NODES nodes, size $2 , window size 1, no copt
+    LEGATE_WINDOW_SIZE=1 ../legate.core/install/bin/legate examples/mandelbrot.py --gpus $GPUSPERNODE --nodes $NODES --launcher $RUNNER -n $2  
 
     #cp cOn.py cunumeric/array.py
     #echo running mandel with ngpus $1, $NODES nodes, size $2 , window size 1, copt
@@ -214,7 +214,7 @@ do
     fi
     echo running BS with ngpus $1, $NODES nodes, size $2 , window size $WSIZE
     cp cOn.py cunumeric/array.py
-    LEGATE_TEST=1 LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/black_scholes2.py  -ll:fsize 12000 --gpus $GPUSPERNODE -b 1 --nodes $NODES --launcher $RUNNER -n $2 2>&1   
+    LEGATE_TEST=1 LEGATE_WINDOW_SIZE=50 ../legate.core/install/bin/legate examples/black_scholes.py  -ll:fsize 12000 --gpus $GPUSPERNODE -b 1 --nodes $NODES --launcher $RUNNER -n $2 2>&1   
     #
 
     #echo running BS with ngpus $1, $NODES nodes, size $2 , window size 1

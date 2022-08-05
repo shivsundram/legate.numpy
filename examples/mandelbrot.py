@@ -39,8 +39,8 @@ def mandelbrot(xmin, xmax, ymin, ymax, xn, yn, maxiter, horizon=4.0, timing=True
         tmp = (Zre)*Zre - (Zim)*Zim + X
         ZimTemp = 2.0 * Zre  * Zim + Y1
 
-        Zre = tmp*(I) + Zre*(~I)
-        Zim = ZimTemp*(I) + Zim*(~I)
+        Zre[:] = tmp*(I) + Zre*(~I)
+        Zim[:] = ZimTemp*(I) + Zim*(~I)
         
     assert np.sum(N)>0
     stop = datetime.datetime.now()
