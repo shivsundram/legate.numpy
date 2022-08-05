@@ -2026,7 +2026,7 @@ class ndarray(object):
             isDeferred = isinstance(one._thunk, DeferredArray) or isinstance(
                 two._thunk, DeferredArray
             )
-            cOpt=False
+            cOpt=True
             if one.dtype != two.dtype:
                 common_type = cls.find_common_type(one, two)
                 if one.dtype != common_type:
